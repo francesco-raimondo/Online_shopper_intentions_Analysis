@@ -121,11 +121,25 @@ For each model: metrics, learning curves (or loss curves), the F1-vs-threshold c
 | Dense Neural Network | 0.36 | 0.891 | 0.668 | 0.716 | 0.691 |
 
 ### What the results mean
-- **Accuracy hides the real progress.** All models are only 2-5 points above the 84.5 % baseline, while F1 goes from 0 to about 0.7.
-- **At threshold 0.5 the models are conservative.** Random Forest has the highest precision (0.87) but finds only a third of the buyers (recall 0.34). The Decision Tree has the best F1 at 0.5 simply because its probabilities are less conservative.
-- **Threshold tuning matters more than the choice of model.** It raises F1 by +0.07 (Decision Tree) to +0.25 (Logistic Regression), trading precision for recall.
-- **After tuning, models are close** (F1 0.635-0.691). The neural network is best, but its margin over Random Forest and Decision Tree (about 0.01-0.02) is small and likely within the noise of a single test split.
-- **Feature importance (Random Forest).** `PageValues` accounts for about 68 % of the total importance, `ExitRates` about 12 %, `ProductRelated_Duration` about 8 %; the top three cover about 88 %, while the `Informational*` features are below 0.5 % each. This is consistent with the correlation analysis. `PageValues` is computed by Google Analytics from past transactions, so part of its predictive power is close to circular. The few dominant features also explain why very different models reach similar F1, and supports dropping the other features.
-- **Learning curves.** Logistic Regression, Decision Tree and Random Forest show a small train/validation gap (low variance) and plateau early, i.e. they are limited by bias, not by lack of data. The large neural network shows mild overfitting; with dropout and regularisation the training loss is above the validation loss because dropout is active only during training.
+- **Accuracy hides the real progress:** All models are only 2-5 points above the 84.5 % baseline, while F1 goes from 0 to about 0.7.
+- **At threshold 0.5 the models are conservative:** Random Forest has the highest precision (0.87) but finds only a third of the buyers (recall 0.34). The Decision Tree has the best F1 at 0.5 simply because its probabilities are less conservative.
+- **Threshold tuning matters more than the choice of model:** It raises F1 by +0.07 (Decision Tree) to +0.25 (Logistic Regression), trading precision for recall.
+- **After tuning, models are close:** (F1 0.635-0.691). The neural network is best, but its margin over Random Forest and Decision Tree (about 0.01-0.02) is small and likely within the noise of a single test split.
+- **Feature importance (Random Forest):** `PageValues` accounts for about 68 % of the total importance, `ExitRates` about 12 %, `ProductRelated_Duration` about 8 %; the top three cover about 88 %, while the `Informational*` features are below 0.5 % each. This is consistent with the correlation analysis. `PageValues` is computed by Google Analytics from past transactions, so part of its predictive power is close to circular. The few dominant features also explain why very different models reach similar F1, and supports dropping the other features.
+- **Learning curves:** Logistic Regression, Decision Tree and Random Forest show a small train/validation gap (low variance) and plateau early, i.e. they are limited by bias, not by lack of data. The large neural network shows mild overfitting; with dropout and regularisation the training loss is above the validation loss because dropout is active only during training.
 
 ---
+
+## 5. Limitations
+
+- The best threshold is selected **on the test set** and then evaluated on the same set, so the "best threshold" scores are slightly optimistic. A validation set (or out-of-fold predictions) should be used for threshold selection.
+- The neural network section re-splits the data (80/10/10), so its test set differs from the one used by the classical models; the comparison is therefore indicative.
+- A single train/test split is used, with no confidence intervals.
+- `Month` and `VisitorType` were excluded after preliminary experiments (not included in this notebook): when added to the Random Forest, their Gini importance became very high while `PageValues` dropped to about 12%, yet model performance did not change. I interpreted this as inflated importance rather than real predictive signal. Gini importance can be biased by categorical features encoded as integers, so this choice would be better supported by an ablation study with one-hot encoding or permutation importance. The other removed features (`OperatingSystems`, `Browser`, `Region`, `TrafficType`, `SpecialDay`, `Weekend`) showed weak correlation with the target and were not tested further.
+- Class imbalance is handled only through threshold tuning (no `class_weight` or resampling).
+
+---
+
+## 6. Reference
+
+Sakar, C.O., Polat, S.O., Katircioglu, M., Kastro, Y. (2019). *Real-time prediction of online shoppers' purchasing intention using multilayer perceptron and LSTM recurrent neural networks.* Neural Computing and Applications, 31, 6893-6908.
