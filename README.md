@@ -67,3 +67,65 @@ To run it somewhere else (local / Kaggle) edit the two path variables only: the 
 - `RUN_EXPENSIVE_CELLS = False` skips the Keras-Tuner grid search; the best hyper-parameters found are stored in the notebook. Set it to `True` (and `pip install keras-tuner`, uncomment the import) to repeat it.
 
 ---
+
+## 3. How the analysis works
+
+### 3.1 Exploratory analysis
+- **Correlation with the target** (numeric columns only): `PageValues` is by far the strongest (+0.49); `ExitRates` (-0.21) and `BounceRates` (-0.15) are negative; page counts and durations are weakly positive (0.07-0.16); the others are about 0.
+- **Class distribution**: 15.5 % positives, hence the choice of F1 and of threshold tuning.
+- **Feature distributions**: counts and durations are strongly right-skewed.
+
+### 3.2 Preprocessing
+- **Feature selection.** Only the 9 numeric behavioural features are kept: `Administrative`, `Administrative_Duration`, `Informational`, `Informational_Duration`, `ProductRelated`, `ProductRelated_Duration`, `BounceRates`, `ExitRates`, `PageValues`.
+  The other 8 were **removed because they were considered not useful for learning**: `OperatingSystems`, `Browser`, `Region`, `TrafficType` (anonymous integer codes with no meaningful order and about 0 correlation with the target), plus `Month`, `SpecialDay`, `VisitorType`, `Weekend`.
+- **Split**: 80 % training / 20 % test, fixed seed (neural network section: an additional validation set).
+- **Scaling**: `MinMaxScaler` to [0, 1], **fit on the training set only** to avoid leakage.
+### 3.3 Models
+| Model | Main settings |
+|---|---|
+| Baseline | Always predicts "no purchase" |
+| Logistic Regression | `liblinear`, L2, `C=1` |
+| Decision Tree | Gini, `max_depth=3` |
+| Random Forest | 300 trees, `max_depth=3`, `min_samples_leaf=10`, `max_features='sqrt'` |
+| Dense Neural Network | 3 architectures compared (large 3,265 params; light 233 params with L1/L2; best 593 params with dropout), Adam lr=1e-3, batch 32, 50 epochs, binary cross-entropy |
+
+For the neural network the final architecture comes from a grid search over L1/L2 strength, dropout rates and size of the second layer: `l1 = l2 = 1e-5`, dropout 0.5 / 0.4, 8 units in the second layer.
+
+### 3.4 Threshold tuning
+A classifier outputs P(purchase) and predicts "purchase" if P >= t. t = 0.5 is only a convention. For each model the notebook scans t from 0 to 1 (step 0.01) and keeps the t with the highest F1. Lowering t increases recall and decreases precision; raising it does the opposite. Because only about 15 % of sessions are buyers, it is probable that the best threshold is not the classic standard threshold of 0.5, indeed this analysis goes deeper and tryis to find the best threshold, meaning the threhshold that maximize the F1-score.
+
+### 3.5 Outputs
+For each model: metrics, learning curves (or loss curves), the F1-vs-threshold curve and the confusion matrix. The final section compares all models in two tables/bar charts (standard vs best threshold). All figures are saved in `Results/` (see section 2).
+
+---
+
+## 4. Results (test set)
+
+**Threshold 0.5**
+
+| Model | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Baseline | 0.845 | 0.000 | 0.000 | 0.000 |
+| Logistic Regression | 0.864 | 0.775 | 0.260 | 0.390 |
+| Decision Tree | 0.879 | 0.668 | 0.547 | 0.602 |
+| Random Forest | 0.881 | 0.868 | 0.336 | 0.484 |
+| Dense Neural Network | 0.880 | 0.756 | 0.441 | 0.557 |
+
+**Best threshold (maximising F1)**
+
+| Model | Threshold | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Logistic Regression | 0.18 | 0.866 | 0.582 | 0.698 | 0.635 |
+| Decision Tree | 0.14 | 0.872 | 0.586 | 0.793 | 0.674 |
+| Random Forest | 0.31 | 0.878 | 0.603 | 0.774 | 0.678 |
+| Dense Neural Network | 0.36 | 0.891 | 0.668 | 0.716 | 0.691 |
+
+### What the results mean
+- **Accuracy hides the real progress.** All models are only 2-5 points above the 84.5 % baseline, while F1 goes from 0 to about 0.7.
+- **At threshold 0.5 the models are conservative.** Random Forest has the highest precision (0.87) but finds only a third of the buyers (recall 0.34). The Decision Tree has the best F1 at 0.5 simply because its probabilities are less conservative.
+- **Threshold tuning matters more than the choice of model.** It raises F1 by +0.07 (Decision Tree) to +0.25 (Logistic Regression), trading precision for recall.
+- **After tuning, models are close** (F1 0.635-0.691). The neural network is best, but its margin over Random Forest and Decision Tree (about 0.01-0.02) is small and likely within the noise of a single test split.
+- **Feature importance (Random Forest).** `PageValues` accounts for about 68 % of the total importance, `ExitRates` about 12 %, `ProductRelated_Duration` about 8 %; the top three cover about 88 %, while the `Informational*` features are below 0.5 % each. This is consistent with the correlation analysis. `PageValues` is computed by Google Analytics from past transactions, so part of its predictive power is close to circular. The few dominant features also explain why very different models reach similar F1, and supports dropping the other features.
+- **Learning curves.** Logistic Regression, Decision Tree and Random Forest show a small train/validation gap (low variance) and plateau early, i.e. they are limited by bias, not by lack of data. The large neural network shows mild overfitting; with dropout and regularisation the training loss is above the validation loss because dropout is active only during training.
+
+---
