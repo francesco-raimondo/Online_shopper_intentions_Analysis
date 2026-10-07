@@ -1,6 +1,6 @@
 # Online Shoppers Purchase Intention: model comparison and F1-oriented threshold tuning
 
-Predict whether an e-commerce browsing session ends with a purchase (`Revenue = True`), comparing a majority-class baseline, Logistic Regression, Decision Tree, Random Forest and a Dense Neural Network. For every model the decision threshold is also tuned to **maximise the F1-score**.
+This is a Binary classification problem, the purpose is to predict whether an e-commerce browsing session ends with a purchase (`Revenue = True`), comparing a majority-class baseline, Logistic Regression, Decision Tree, Random Forest and a Dense Neural Network. For every model the decision threshold is also tuned to **maximise the F1-score**.
 
 Everything lives in a single notebook: `Definitivo.ipynb`.
 
@@ -27,7 +27,7 @@ Everything lives in a single notebook: `Definitivo.ipynb`.
 | **`Revenue`** | **Target**: the session ended with a purchase |
 
 ### Why accuracy is not enough
-A model that always answers "no purchase" gets **84.5 % accuracy** but finds no buyer at all (precision = recall = F1 = 0). For this reason the main metric is the **F1-score of the purchase class** (harmonic mean of precision and recall); accuracy, precision and recall are reported too.
+This dataset is highly unbalanced because about the 84.5% of the sessions ended without a purchase (visible from the cell 3.2), meaning that a model that always answers "no purchase" gets **84.5 % accuracy** but finds no buyer at all (precision = recall = F1 = 0). For this reason the main metric is the **F1-score of the purchase class**; accuracy, precision and recall are reported too.
 
 ---
 
@@ -36,7 +36,7 @@ A model that always answers "no purchase" gets **84.5 % accuracy** but finds no 
 The notebook was developed on **Google Colab with Google Drive**, and the paths in the code are currently hard-coded as follows:
 
 ```
-MyDrive/Secondo_Progetto_AI/
+Main_Folder/
 ├── Datasets/
 │   └── dataset_purchase/
 │       └── online_shoppers_intention.csv     <- INPUT: put the dataset here
