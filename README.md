@@ -1,6 +1,6 @@
 # Online Shoppers Purchase Intention: model comparison and F1-oriented threshold tuning
 
-This is a Binary classification problem, the purpose is to predict whether an e-commerce browsing session ends with a purchase (`Revenue = True`), comparing a majority-class baseline, Logistic Regression, Decision Tree, Random Forest and a Dense Neural Network. For every model the decision threshold is also tuned to **maximise the F1-score**.
+This is a Binary classification problem, the purpose is to predict whether an e-commerce browsing session ends with a purchase (`Revenue = True`), comparing a majority-class baseline, Logistic Regression, Decision Tree, Random Forest and a Dense Neural Network. For every model the decision threshold is also tuned to **maximise the F1-score**. Be aware that this notebook contains an analysis with some important limitations, described at the end of this README, therefore it could be clearly improved.
 
 Everything lives in a single notebook: `Definitivo.ipynb`.
 
