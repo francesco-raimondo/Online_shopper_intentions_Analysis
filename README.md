@@ -27,7 +27,7 @@ Everything lives in a single notebook: `Definitivo.ipynb`.
 | **`Revenue`** | **Target**: the session ended with a purchase |
 
 ### Why accuracy is not enough
-This dataset is highly unbalanced because about the 84.5% of the sessions ended without a purchase (visible from the cell 3.2), meaning that a model that always answers "no purchase" gets **84.5 % accuracy** but finds no buyer at all (precision = recall = F1 = 0). For this reason the main metric is the **F1-score of the purchase class**; accuracy, precision and recall are reported too.
+This dataset is highly unbalanced because about the 84.5% of the sessions ended without a purchase (this is visible from the cell 3.2 of the notebook), meaning that a model that always answers "no purchase" gets **84.5 % accuracy** but finds no buyer at all (precision = recall = F1 = 0). For this reason the main metric is the **F1-score of the purchase class**; accuracy, precision and recall are reported too.
 
 ---
 
@@ -36,9 +36,9 @@ This dataset is highly unbalanced because about the 84.5% of the sessions ended 
 The notebook was developed on **Google Colab with Google Drive**, and the paths in the code are currently hard-coded as follows:
 
 ```
-Main_Folder/
+Main_Folder (or the name you decided in cell 1.1)/
 ├── Datasets/
-│   └── dataset_purchase/
+│   └── dataset_purchase (or the name you decided in cell 1.1)/
 │       └── online_shoppers_intention.csv     <- INPUT: put the dataset here
 └── Results/                                  <- OUTPUT: all figures (.png) are saved here
     ├── correlation_matrix.png
